@@ -1,0 +1,51 @@
+/* CS Department Portal Custom Styles */
+
+.main > div {
+    padding-top: 2rem;
+}
+
+.stButton > button {
+    background-color: #1f77b4;
+    color: white;
+    border-radius: 5px;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+}
+
+.stButton > button:hover {
+    background-color: #1565c0;
+    color: white;
+}
+
+.login-container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.room-available {
+    background-color: #e8f5e8;
+    padding: 0.5rem;
+    border-radius: 5px;
+    margin: 0.25rem 0;
+}
+
+.room-booked {
+    background-color: #ffebee;
+    padding: 0.5rem;
+    border-radius: 5px;
+    margin: 0.25rem 0;
+}
+
+.faculty-free {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.faculty-busy {
+    background-color: #fff3e0;
+    color: #ef6c00;
+}
