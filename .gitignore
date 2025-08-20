@@ -1,0 +1,39 @@
+# Environment variables
+.env
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Streamlit
+.streamlit/
+
+# Database
+*.db
+*.sqlite3
+
+# User uploaded files (optional - you might want to track some test files)
+data/media/photos/*
+data/media/videos/*
+!data/media/photos/.gitkeep
+!data/media/videos/.gitkeep
+
+# Booking data (changes frequently)
+data/bookings/*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
