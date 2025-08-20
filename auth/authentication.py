@@ -1,75 +1,65 @@
 import streamlit as st
-import google.oauth2.credentials
-from google_auth_oauthlib.flow import Flow
-from googleapiclient.discovery import build
+import hashlib
 import json
-import config
 
-class GoogleAuthenticator:
-    def __init__(self):
-        self.client_config = {
-            "web": {
-                "client_id": config.GOOGLE_CLIENT_ID,
-                "client_secret": config.GOOGLE_CLIENT_SECRET,
-                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                "token_uri": "https://oauth2.googleapis.com/token",
-                "redirect_uris": [config.REDIRECT_URI]
+# Simple user database (in real app, use proper database)
+def load_users():
+    try:
+        with open('users.json', 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        # Create initial users
+        users = {
+            "daksh.kumar@bcah.christuniversity.in": {
+                "password": hashlib.sha256("student123".encode()).hexdigest(),
+                "role": "Student",
+                "name": "John Student"
+            },
+            "prof@youruni.edu.in": {
+                "password": hashlib.sha256("prof123".encode()).hexdigest(),
+                "role": "Teacher", 
+                "name": "Dr. Smith"
             }
         }
-    
-    def get_authorization_url(self):
-        flow = Flow.from_client_config(
-            self.client_config,
-            scopes=['openid', 'email', 'profile']
-        )
-        flow.redirect_uri = config.REDIRECT_URI
-        
-        authorization_url, state = flow.authorization_url(
-            access_type='offline',
-            include_granted_scopes='true'
-        )
-        
-        return authorization_url, state
-    
-    def authenticate_user(self, authorization_code, state):
-        flow = Flow.from_client_config(
-            self.client_config,
-            scopes=['openid', 'email', 'profile'],
-            state=state
-        )
-        flow.redirect_uri = config.REDIRECT_URI
-        
-        try:
-            flow.fetch_token(code=authorization_code)
-            credentials = flow.credentials
-            
-            # Get user info
-            service = build('oauth2', 'v2', credentials=credentials)
-            user_info = service.userinfo().get().execute()
-            
-            return {
-                'email': user_info.get('email'),
-                'name': user_info.get('name'),
-                'verified_email': user_info.get('verified_email')
-            }
-        except Exception as e:
-            st.error(f"Authentication failed: {str(e)}")
-            return None
+        with open('users.json', 'w') as f:
+            json.dump(users, f, indent=2)
+        return users
 
-def determine_user_role(email):
-    """Determine if user is student or teacher based on email or other criteria"""
-    # You can implement your own logic here
-    # For now, using a simple approach based on email patterns
+def authenticate_user(email, password):
+    users = load_users()
+    password_hash = hashlib.sha256(password.encode()).hexdigest()
     
-    # Load teacher emails from a file or database
-    try:
-        with open('data/teacher_emails.json', 'r') as f:
-            teacher_emails = json.load(f)
+    if email in users and users[email]['password'] == password_hash:
+        return users[email]
+    return None
+
+def login_page():
+    st.title("CS Department Portal - Login")
+    form_key = f"login_form_{st.session_state.get('form_instance', 'default')}"
+    with st.form(form_key):
+        email = st.text_input("University Email")
+        password = st.text_input("Password", type="password")
+        role = st.selectbox("Login as:", ["Student", "Teacher"])
+        submitted = st.form_submit_button("Login")
         
-        if email in teacher_emails:
-            return "Teacher"
-        else:
-            return "Student"
-    except FileNotFoundError:
-        # Default to student if no teacher list found
-        return "Student"
+        if submitted:
+            user = authenticate(email, password)
+            if user and user['role'] == role:
+                st.session_state.authenticated = True
+                st.session_state.user_email = email
+                st.session_state.user_role = role
+                st.session_state.user_name = user['name']
+                st.rerun()
+            else:
+                st.error("Invalid credentials or role mismatch")
+
+# Main app logic
+if not st.session_state.get('authenticated', False):
+    login_page()
+else:
+    st.title(f"Welcome, {st.session_state.user_name}")
+    st.write(f"Role: {st.session_state.user_role}")
+    
+    if st.sidebar.button("Logout"):
+        st.session_state.authenticated = False
+        st.run()

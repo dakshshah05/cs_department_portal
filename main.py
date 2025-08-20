@@ -1,5 +1,6 @@
 import streamlit as st
 from auth.authentication import authenticate_user
+from pages.login import show_page
 from pages import login, room_booking, faculty_schedule, media_gallery
 from utils.permissions import check_user_role
 import config
@@ -20,18 +21,18 @@ def load_css():
 def main():
     load_css()
     
-    # Session state initialization
-    if 'authenticated' not in st.session_state:
+    # Initialize session state keys once
+    if 'initialized' not in st.session_state:
+        st.session_state.initialized = True
         st.session_state.authenticated = False
-    if 'user_role' not in st.session_state:
         st.session_state.user_role = None
-    if 'user_email' not in st.session_state:
         st.session_state.user_email = None
-
-    # Authentication check
-    if not st.session_state.authenticated:
-        login.show_login_page()
-    else:
+        st.session_state.show_login_form = True  # New flag
+    
+    if not st.session_state.authenticated and st.session_state.show_login_form:
+        st.session_state.show_login_form = False  # Ensure form renders only once per run
+        show_page()
+    elif st.session_state.authenticated:
         show_main_app()
 
 def show_main_app():
